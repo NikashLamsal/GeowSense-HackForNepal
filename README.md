@@ -17,10 +17,10 @@ Through integrated AI models and external APIs, GrowSense delivers valuable insi
 - **Team:** ACE
 - **Category:** Agri-Tech
 - **Team Members:**
+  - Nikash Lamsal
+  - Aarogya Parajuli
   - Pramit Kaucha Magar
   - Nisrit Baral
-  - Aarogya Parajuli
-  - Nikash Lamsal
 
 ---
 
