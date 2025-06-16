@@ -39,7 +39,7 @@ Through integrated AI models and external APIs, GrowSense delivers valuable insi
 ## 🛠️ Tech Stack
 
 ### Hardware:
-- ESP32 Microcontroller (Programmed in C)
+- ESP32 Microcontroller (Programmed in C++)
 
 ### Backend:
 - Node.js
