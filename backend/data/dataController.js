@@ -5,65 +5,73 @@ import getDataFromFirebase from "./getDataFromFireBase.js";
 const router = express.Router();
 
 export const saveDataAverage = async () => {
-  let sampleCount = 0;
   try {
-    const startOfToday = new Date();
-    startOfToday.setHours(0, 0, 0, 0);
+    const now = new Date();
+
+    const startOfToday = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate()
+    );
 
     const data = await getDataFromFirebase();
+    console.log("Data from web:", data);
 
+    // Find today's document or create a new one if none exists or sampleCount reached 24
     let doc = await DataTable.findOne({ dateOfData: startOfToday });
 
-    if (!doc) {
-      doc = new DataTable({
-        dateOfData: startOfToday,
-        tempValue: [{ moisture: 0, temperature: 0, humidity: 0 }],
-        hourlyAverage: [],
-      });
-      sampleCount = 0;
+    if (!doc || doc.sampleCount >= 24) {
+      doc = new DataTable({ dateOfData: startOfToday });
+      doc.sampleCount = 0;
+      doc.moistureValues = new Array(25).fill(0);
+      doc.temperatureValues = new Array(25).fill(0);
+      doc.humidityValues = new Array(25).fill(0);
+      console.log("New document created for the day.");
     }
+    
 
-    let temp = doc.tempValue[0] || { moisture: 0, temperature: 0, humidity: 0 };
+    const index = doc.sampleCount;
 
-    temp.moisture += data.moisture;
-    temp.temperature += data.temperature;
-    temp.humidity += data.humidity;
+    // Save data at the current sampleCount index
+    doc.moistureValues[index] = data.moisture;
+    doc.temperatureValues[index] = data.temperature;
+    doc.humidityValues[index] = data.humidity;
 
-    doc.tempValue[0] = temp;
-    sampleCount++;
+    doc.sampleCount += 1;
 
-    if (sampleCount === 12) {
-      const avgMoisture = temp.moisture / 12;
-      const avgTemperature = temp.temperature / 12;
-      const avgHumidity = temp.humidity / 12;
-
-      doc.hourlyAverage.push({
-        moisture: avgMoisture,
-        temperature: avgTemperature,
-        humidity: avgHumidity,
-      });
-
-      doc.tempValue[0] = { moisture: 0, temperature: 0, humidity: 0 };
-      sampleCount = 0;
-
-      console.log(
-        `Saved hourly average for ${startOfToday.toDateString()}. Total hours: ${
-          doc.hourlyAverage.length
-        }`
-      );
-    }
+    console.log(
+      `Index ${index}: Moisture=${data.moisture}, Temp=${data.temperature}, Humidity=${data.humidity}`
+    );
+    console.log(`Sample count incremented to ${doc.sampleCount}`);
 
     await doc.save();
-  } catch (error) {
-    console.error("Error in saveDataAverage:", error);
+  } catch (err) {
+    console.error("Error in saveDataAverage:", err);
   }
 };
 
-router.post("/data/get", async (req, res) => {
-  const data = await getDataFromFirebase();
+router.get("/data/get", async (req, res) => {
+  try {
+    const now = new Date();
+    const startOfToday = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate()
+    );
 
-  if (!data) {
-    return res.status(200).send({ message: "Data Doesn't Exist" });
+    const doc = await DataTable.findOne({ dateOfData: startOfToday });
+
+    if (!doc) {
+      return res.status(200).send({ message: "Data Doesn't Exist" });
+    }
+
+    return res
+      .status(200)
+      .json({ message: "Data Sent Successfully", data: doc });
+  } catch (err) {
+    console.error("Error fetching data:", err);
+    return res.status(500).send({ message: "Internal Server Error" });
   }
-  return res.status(200).send({ message: "Data Sent Successfully" }, data);
 });
+
+export { router as dataController };

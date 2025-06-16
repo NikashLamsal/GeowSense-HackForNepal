@@ -1,6 +1,6 @@
 import React from "react";
 import Image from "next/image";
-import Footer from "@/app/components/Footer";
+import Footer from "@/app/(auth)/components/Footer";
 
 const Support = () => {
   return (

@@ -27,11 +27,9 @@ const LoginForm = () => {
     },
     onSuccess: (res) => {
       const accessToken = res.data.accessToken;
-      const firstName = res.data.userDetails.firstName;
-
       window.localStorage.setItem("accessToken", accessToken);
-      window.localStorage.setItem("firstName", firstName);
-      router.push("/");
+ 
+      router.push("/dashboard");
     },
     onError: (error) => {
       toast.error(error.response.data.message);
